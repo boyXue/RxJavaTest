@@ -135,7 +135,6 @@ public class MainActivity extends AppCompatActivity {
 //                } else {
 //                    Toast.makeText(MainActivity.this, "图片已加载，请不要重复操作", Toast.LENGTH_SHORT).show();
 //                }
-
             }
         });
     }
