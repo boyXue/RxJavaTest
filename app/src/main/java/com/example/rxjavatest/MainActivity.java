@@ -1,140 +1,255 @@
 package com.example.rxjavatest;
 
-import android.app.ProgressDialog;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.Color;
-import android.graphics.Paint;
 import android.os.Bundle;
 import android.view.View;
-import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.rxjavatest.databinding.ActivityMainBinding;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
-import rx.Observable;
-import rx.Observer;
-import rx.android.schedulers.AndroidSchedulers;
-import rx.functions.Func1;
-import rx.schedulers.Schedulers;
+import io.reactivex.Observable;
+import io.reactivex.ObservableEmitter;
+import io.reactivex.ObservableOnSubscribe;
+import io.reactivex.ObservableSource;
+import io.reactivex.Observer;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.annotations.NonNull;
+import io.reactivex.disposables.Disposable;
+import io.reactivex.functions.Consumer;
+import io.reactivex.functions.Function;
+import io.reactivex.functions.Function3;
+import io.reactivex.schedulers.Schedulers;
 
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements View.OnClickListener {
     private ActivityMainBinding binding;
-    //图片的网络地址
-    private String PATH = "http://pic1.win4000.com/wallpaper/c/53cdd1f7c1f21.jpg";
-    //加载时的弹出框
-    private ProgressDialog progressDialog;
-    private List<String> list = new ArrayList<>();
-    private boolean img = false;
+    private int i;
+    private Observable observable;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
-        list.add("hello");
-        list.add("skjlf");
-        list.add("dsfafasf");
-        list.add("dfafebvg");
+        binding.createButton.setOnClickListener(this);
+        binding.mapButton.setOnClickListener(this);
+        binding.zipButton.setOnClickListener(this);
+        binding.concatButton.setOnClickListener(this);
+        binding.flatMapButton.setOnClickListener(this);
+        binding.concatMapButton.setOnClickListener(this);
+    }
 
-        binding.button.setOnClickListener(new View.OnClickListener() {
+    private Observable<String> getStringObservable() {
+        return Observable.create(new ObservableOnSubscribe<String>() {
             @Override
-            public void onClick(View v) {
-//                Observable.create(new Observable.OnSubscribe<String>() {
-//                    @Override
-//                    public void call(Subscriber<? super String> subscriber) {
-//                        subscriber.onNext("hello");
-//                        subscriber.onNext("hello1");
-//                        subscriber.onNext("hello2");
-//                        subscriber.onNext("hello3");
-//                        subscriber.onNext("hello4");
-//                        subscriber.onCompleted();
-//                    }
-//                }).subscribe(new Action1<String>() {//Action是没有返回值的
-//                    @Override
-//                    public void call(String s) {
-//                        binding.textView.append("\n"+s);
-//                    }
-//                });
-
-//                Observable.from(list)
-//                        .subscribe(new Action1<String>() {
-//                            @Override
-//                            public void call(String s) {
-//                                binding.textView.append("\n"+s);
-//                            }
-//                        });
-                if (!img) {
-                    progressDialog = new ProgressDialog(MainActivity.this);
-                    progressDialog.setTitle("download run");
-                    progressDialog.show();
-                    Observable.just(PATH)
-                            .map(new Func1<String, Bitmap>() {
-                                @Override
-                                public Bitmap call(String s) {
-                                    try {
-                                        URL url = new URL(s);
-                                        HttpURLConnection httpURLConnection = (HttpURLConnection) url.openConnection();
-                                        httpURLConnection.setConnectTimeout(5000);
-                                        int responseCode = httpURLConnection.getResponseCode();
-                                        if (responseCode == HttpURLConnection.HTTP_OK) {
-                                            InputStream inputStream = httpURLConnection.getInputStream();
-                                            Bitmap bitmap = BitmapFactory.decodeStream(inputStream);
-                                            return bitmap;
-                                        }
-
-                                    } catch (IOException e) {
-                                        e.printStackTrace();
-                                    }
-                                    return null;
-                                }
-                            })
-                            .map(new Func1<Bitmap, Bitmap>() {//Fun1是带有返回值的
-                                @Override
-                                public Bitmap call(Bitmap bitmap) {
-                                    Paint paint = new Paint();
-                                    paint.setTextSize(88);
-                                    paint.setColor(Color.BLUE);
-                                    return drawTextToBitmap.drawTextToBitmap(bitmap, "这是水印", paint, 80, 80);
-                                }
-                            })
-                            .subscribeOn(Schedulers.io())//给上面的代码分配到异步线程
-                            .observeOn(AndroidSchedulers.mainThread())//切换到主线程
-                            .subscribe(new Observer<Bitmap>() {
-                                @Override
-                                public void onCompleted() {
-
-                                }
-
-                                @Override
-                                public void onError(Throwable e) {
-
-                                }
-
-                                @Override
-                                public void onNext(Bitmap bitmap) {
-                                    if (progressDialog != null) {
-                                        progressDialog.dismiss();
-                                    }
-                                    binding.imageView.setImageBitmap(bitmap);
-                                    img = true;
-                                }
-                            });
-                } else {
-                    Toast.makeText(MainActivity.this, "图片已加载，请不要重复操作", Toast.LENGTH_SHORT).show();
-                }
+            public void subscribe(ObservableEmitter<String> emitter) throws Exception {
+                emitter.onNext("A");
+                emitter.onNext("B");
+                emitter.onNext("C");
+                emitter.onComplete();
             }
         });
     }
 
+    private Observable<Integer> getIntegarOvservable() {
+        return Observable.create(new ObservableOnSubscribe<Integer>() {
+            @Override
+            public void subscribe(ObservableEmitter<Integer> emitter) throws Exception {
+                emitter.onNext(1);
+                emitter.onNext(2);
+                emitter.onNext(3);
+                emitter.onNext(4);
+                emitter.onNext(5);
+                emitter.onComplete();
+            }
+        });
+    }
 
+    @Override
+    public void onClick(View v) {
+        binding.textView.setText("");
+        switch (v.getId()) {
+            case R.id.createButton:
+                createRxJava();
+                break;
+            case R.id.mapButton:
+                mapRxJava();
+                break;
+            case R.id.zipButton:
+                zipRxJava();
+                break;
+            case R.id.concatButton:
+                concatRxJava();
+                break;
+            case R.id.flatMapButton:
+                flatMapRxJava();
+                break;
+            case R.id.concatMapButton:
+                concatMapRxJava();
+                break;
+        }
+    }
+
+    private void concatMapRxJava() {
+        observable.create(new ObservableOnSubscribe<Integer>() {
+            @Override
+            public void subscribe(ObservableEmitter<Integer> emitter) throws Exception {
+                emitter.onNext(1);
+                emitter.onNext(2);
+                emitter.onNext(3);
+            }
+        }).concatMap(new Function<Integer, ObservableSource<String>>() {
+            @Override
+            public ObservableSource<String> apply(Integer integer) throws Exception {
+                List<String> list = new ArrayList<>();
+                for (int i = 0; i < 3; i++) {
+                    list.add("I am value " + integer);
+                }
+                int delayTime = (int) (1 + Math.random() * 10);
+                return Observable.fromIterable(list).delay(delayTime, TimeUnit.MILLISECONDS);
+            }
+        }).subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Consumer<String>() {
+                    @Override
+                    public void accept(String s) throws Exception {
+                        binding.textView.append(s + "");
+                    }
+                });
+    }
+
+    //为传入的observable的数据添加多个子数据，但不保证顺序，如果需要保证顺序使用concatMap
+    private void flatMapRxJava() {
+        observable.create(new ObservableOnSubscribe<Integer>() {
+            @Override
+            public void subscribe(ObservableEmitter<Integer> emitter) throws Exception {
+                emitter.onNext(1);
+                emitter.onNext(2);
+                emitter.onNext(3);
+            }
+        }).flatMap(new Function<Integer, ObservableSource<String>>() {
+            @Override
+            public ObservableSource<String> apply(Integer integer) throws Exception {
+                List<String> list = new ArrayList<>();
+                for (int i = 0; i < 3; i++) {
+                    list.add("I am value" + integer);
+                }
+                int delayTime = (int) (1 + Math.random() * 10);
+                return Observable.fromIterable(list).delay(delayTime, TimeUnit.MILLISECONDS);
+            }
+        }).subscribeOn(Schedulers.newThread())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Consumer<String>() {
+                    @Override
+                    public void accept(@NonNull String s) throws Exception {
+                        binding.textView.append("flatMap : accept : " + s + "\n");
+                    }
+                });
+    }
+
+    private void concatRxJava() {
+        //两个数据源连成一个进行输出
+        observable.concat(Observable.just(1, 2, 3), Observable.just("h", "h", "g"))
+                .subscribe(new Consumer<Serializable>() {
+                    @Override
+                    public void accept(Serializable serializable) throws Exception {
+                        binding.textView.append(String.valueOf(serializable));
+                    }
+                });
+    }
+
+    private void zipRxJava() {
+        //合并事件，两两配对
+//        Observable.zip(getStringObservable(), getIntegarOvservable(), new BiFunction<String, Integer, String>() {
+//            @Override
+//            public String apply(String s, Integer integer) throws Exception {
+//                return s + integer;
+//            }
+//        }).subscribe(new Consumer<String>() {
+//            @Override
+//            public void accept(String s) throws Exception {
+//                binding.textView.append(s + "\n");
+//            }
+//        });
+
+        observable.zip(getStringObservable(), getIntegarOvservable(), getStringObservable(), new Function3<String, Integer, String, String>() {
+            @Override
+            public String apply(String s, Integer integer, String s2) throws Exception {
+                return s + integer + s2;
+            }
+        }).subscribe(new Consumer<String>() {
+            @Override
+            public void accept(String s) throws Exception {
+                binding.textView.append(s + "\n");
+            }
+        });
+    }
+
+    //将输入的类型进行变换再输出
+    private void mapRxJava() {
+        observable.create(new ObservableOnSubscribe<Integer>() {
+            @Override
+            public void subscribe(ObservableEmitter<Integer> emitter) throws Exception {
+                emitter.onNext(1);
+                emitter.onNext(2);
+                emitter.onNext(3);
+                emitter.onComplete();
+            }
+        }).map(new Function<Integer, String>() {
+            @Override
+            public String apply(Integer integer) throws Exception {
+                return "This is result" + integer;
+            }
+        }).subscribe(new Consumer<String>() {
+            @Override
+            public void accept(String s) throws Exception {
+                binding.textView.append(s + "");
+            }
+        });
+    }
+
+    private void createRxJava() {
+        observable.create(new ObservableOnSubscribe<Integer>() {
+            @Override
+            public void subscribe(ObservableEmitter<Integer> emitter) throws Exception {
+                emitter.onNext(1);
+                emitter.onNext(2);
+                emitter.onNext(3);
+                emitter.onNext(4);
+                emitter.onComplete();
+            }
+        }).subscribe(new Observer<Integer>() {
+            private Disposable mDisposable;
+
+            @Override
+            public void onSubscribe(Disposable d) {
+                mDisposable = d;
+            }
+
+            @Override
+            public void onNext(Integer integer) {
+                i++;
+                binding.textView.append(integer + "\n");
+                if (i == 2) {
+                    mDisposable.dispose();
+                    binding.textView.append(integer + "\n");
+                }
+            }
+
+            @Override
+            public void onError(Throwable e) {
+
+            }
+
+            @Override
+            public void onComplete() {
+
+            }
+        });
+    }
 }
