@@ -27,6 +27,7 @@ import io.reactivex.schedulers.Schedulers;
 
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
+
     private ActivityMainBinding binding;
     private int i;
     private Observable observable;
