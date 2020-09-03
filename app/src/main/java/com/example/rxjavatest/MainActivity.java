@@ -29,6 +29,7 @@ public class MainActivity extends AppCompatActivity {
         list.add("skjlf");
         list.add("dsfafasf");
         list.add("dfafebvg");
+
         binding.button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
